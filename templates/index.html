@@ -137,7 +137,7 @@
             border: 1px solid #c586c0;
         }
 
-        .token-PUNCTUATION {
+        .token-SYMBOL {
             background-color: rgba(128, 128, 128, 0.3);
             color: #808080;
             border: 1px solid #808080;
@@ -292,7 +292,7 @@
                             <div class="text-outline-variant mb-2 uppercase tracking-widest text-[10px] font-bold">1.
                                 Tokens</div>
                             <div id="tokensArea"
-                                class="flex flex-wrap content-start items-start gap-1 p-2 bg-surface-container-lowest rounded border border-outline-variant/20 flex-1">
+                                class="flex-1 overflow-auto bg-surface-container-lowest rounded border border-outline-variant/20 flex flex-col relative content-start">
                                 <div class="text-outline-variant italic w-full text-center py-2">Run a query to see
                                     tokens...</div>
                             </div>
@@ -401,15 +401,37 @@
                 // Render Tokens
                 const tokensArea = document.getElementById('tokensArea');
                 if (data.tokens && data.tokens.length > 0) {
-                    data.tokens.forEach(t => {
-                        const span = document.createElement('span');
-                        span.className = `token-badge token-${t.type}`;
-                        span.textContent = t.value;
-                        span.title = t.type;
-                        tokensArea.appendChild(span);
+                    let tokensTableHtml = '<table class="w-full text-left border-collapse font-ui-body text-ui-body"><thead class="sticky top-0 bg-surface-container-low border-b border-outline-variant/30 z-10"><tr>';
+                    tokensTableHtml += '<th class="py-2 px-md font-medium text-on-surface-variant border-r border-outline-variant/20 whitespace-nowrap">#</th>';
+                    tokensTableHtml += '<th class="py-2 px-md font-medium text-on-surface-variant border-r border-outline-variant/20 whitespace-nowrap">Lexeme</th>';
+                    tokensTableHtml += '<th class="py-2 px-md font-medium text-on-surface-variant border-r border-outline-variant/20 whitespace-nowrap">Type</th>';
+                    tokensTableHtml += '<th class="py-2 px-md font-medium text-on-surface-variant border-outline-variant/20 whitespace-nowrap">Description</th>';
+                    tokensTableHtml += '</tr></thead><tbody>';
+
+                    data.tokens.forEach((t, idx) => {
+                        let description = '';
+                        switch (t.type) {
+                            case 'KEYWORD': description = 'SQL reserved keyword'; break;
+                            case 'IDENTIFIER': description = 'Table, column, or alias name'; break;
+                            case 'STRING': description = 'String literal'; break;
+                            case 'NUMBER': description = 'Numeric literal'; break;
+                            case 'OPERATOR': description = 'Mathematical or logical operator'; break;
+                            case 'SYMBOL': description = 'Syntax symbol'; break;
+                            case 'WILDCARD': description = 'Wildcard character'; break;
+                            default: description = 'Token';
+                        }
+
+                        tokensTableHtml += '<tr class="hover:bg-surface-container-high transition-colors group border-b border-outline-variant/10">';
+                        tokensTableHtml += `<td class="py-2 px-md text-on-surface border-r border-outline-variant/20 whitespace-nowrap">${idx + 1}</td>`;
+                        tokensTableHtml += `<td class="py-2 px-md text-on-surface border-r border-outline-variant/20 whitespace-nowrap font-code-sm">${t.value}</td>`;
+                        tokensTableHtml += `<td class="py-2 px-md border-r border-outline-variant/20 whitespace-nowrap"><span class="token-badge token-${t.type}">${t.type}</span></td>`;
+                        tokensTableHtml += `<td class="py-2 px-md text-on-surface-variant whitespace-nowrap text-sm">${description}</td>`;
+                        tokensTableHtml += '</tr>';
                     });
+                    tokensTableHtml += '</tbody></table>';
+                    tokensArea.innerHTML = tokensTableHtml;
                 } else {
-                    tokensArea.innerHTML = '<div class="text-outline-variant italic">No tokens generated.</div>';
+                    tokensArea.innerHTML = '<div class="text-outline-variant italic w-full text-center py-4">No tokens generated.</div>';
                 }
 
                 // Render AST

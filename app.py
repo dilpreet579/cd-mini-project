@@ -65,16 +65,16 @@ def tokenize(query):
 
         if upper_t in keywords:
             token_type = "KEYWORD"
-        elif t_strip in {"=", "<", ">", "<=", ">=", "!=", "<>", "+", "-", "*", "/"}:
-            token_type = "OPERATOR"
         elif t_strip == "*":
             token_type = "WILDCARD"
+        elif t_strip in {"=", "<", ">", "<=", ">=", "!=", "<>", "+", "-", "/"}:
+            token_type = "OPERATOR"
         elif t_strip.startswith("'") or t_strip.startswith('"'):
             token_type = "STRING"
         elif t_strip.isnumeric() or re.match(r"^\d+\.\d+$", t_strip):
             token_type = "NUMBER"
         elif re.match(r"^[(),;]+$", t_strip):
-            token_type = "PUNCTUATION"
+            token_type = "SYMBOL"
         elif re.match(r"^[a-zA-Z_]\w*$", t_strip):
             token_type = "IDENTIFIER"
 
