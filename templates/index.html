@@ -1,122 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiniSQL Studio</title>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>MiniSQL Studio - Parser Workspace</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#131315",
+                        "on-primary-container": "#00574d",
+                        "primary": "#57f1db",
+                        "surface-dim": "#131315",
+                        "outline": "#859490",
+                        "on-tertiary-container": "#744000",
+                        "on-secondary-fixed-variant": "#5c4300",
+                        "on-secondary": "#402d00",
+                        "on-tertiary-fixed-variant": "#6b3b00",
+                        "background": "#131315",
+                        "inverse-on-surface": "#313032",
+                        "on-background": "#e5e1e4",
+                        "surface-container": "#201f22",
+                        "on-primary": "#003731",
+                        "outline-variant": "#3c4a46",
+                        "tertiary-fixed": "#ffdcc0",
+                        "surface-container-low": "#1c1b1d",
+                        "secondary": "#ffc640",
+                        "primary-fixed-dim": "#3cddc7",
+                        "secondary-fixed": "#ffdf9f",
+                        "primary-fixed": "#62fae3",
+                        "error-container": "#93000a",
+                        "surface-container-high": "#2a2a2c",
+                        "on-primary-fixed-variant": "#005047",
+                        "on-tertiary-fixed": "#2d1600",
+                        "primary-container": "#2dd4bf",
+                        "inverse-primary": "#006b5f",
+                        "tertiary": "#ffd1aa",
+                        "tertiary-fixed-dim": "#ffb875",
+                        "surface-tint": "#3cddc7",
+                        "on-error": "#690005",
+                        "secondary-container": "#e3aa00",
+                        "surface-container-lowest": "#0e0e10",
+                        "surface-variant": "#353437",
+                        "tertiary-container": "#ffac5a",
+                        "on-primary-fixed": "#00201c",
+                        "on-surface": "#e5e1e4",
+                        "on-secondary-container": "#5a4100",
+                        "surface-bright": "#39393b",
+                        "on-surface-variant": "#bacac5",
+                        "on-tertiary": "#4b2800",
+                        "error": "#ffb4ab",
+                        "surface-container-highest": "#353437",
+                        "inverse-surface": "#e5e1e4",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#f9bd22",
+                        "on-secondary-fixed": "#261a00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "xl": "40px",
+                        "gutter": "1px"
+                    },
+                    "fontFamily": {
+                        "ui-header": ["Inter"],
+                        "code-sm": ["JetBrains Mono"],
+                        "ui-body": ["Inter"],
+                        "ui-label": ["Inter"],
+                        "code-main": ["JetBrains Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+
     <style>
-        /* Workspace Theme styling */
-        :root {
-            --bg: #1e1e1e;
-            --panel-bg: #252526;
-            --border: #3c3c3c;
-            --text: #d4d4d4;
-            --primary: #0e639c;
-            --primary-hover: #1177bb;
-            --keyword: #569cd6;
-            --identifier: #4ec9b0;
-            --string: #ce9178;
-            --number: #b5cea8;
-            --operator: #c586c0;
-            --punctuation: #808080;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .header {
-            padding: 10px 20px;
-            background: #333;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: var(--keyword);
-        }
-
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 6px 15px;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 3px;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .workspace {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 200px 1fr;
-            gap: 10px;
-            padding: 10px;
-            flex: 1;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-
-        .panel {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .panel-header {
-            background: #2d2d2d;
-            padding: 5px 10px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            border-bottom: 1px solid var(--border);
-            color: #ccc;
-        }
-
-        .panel-content {
-            padding: 10px;
-            overflow-y: auto;
-            flex: 1;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .editor-panel {
-            grid-column: 1 / 3;
-        }
-
-        textarea {
-            width: 100%;
-            height: 100%;
-            background-color: transparent;
-            color: #dcdcaa;
-            border: none;
-            outline: none;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 16px;
-            resize: none;
-            box-sizing: border-box;
-        }
-
-        /* Token Badges */
+        /* Retained Functional Styling for AST and Tokens */
         .token-badge {
             display: inline-block;
             padding: 2px 6px;
@@ -125,153 +103,233 @@
             font-size: 0.85rem;
             color: #fff;
             background-color: #444;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .token-KEYWORD {
             background-color: rgba(86, 156, 214, 0.3);
-            color: var(--keyword);
-            border: 1px solid var(--keyword);
+            color: #569cd6;
+            border: 1px solid #569cd6;
         }
 
         .token-IDENTIFIER {
             background-color: rgba(78, 201, 176, 0.3);
-            color: var(--identifier);
-            border: 1px solid var(--identifier);
+            color: #4ec9b0;
+            border: 1px solid #4ec9b0;
         }
 
         .token-STRING {
             background-color: rgba(206, 145, 120, 0.3);
-            color: var(--string);
-            border: 1px solid var(--string);
+            color: #ce9178;
+            border: 1px solid #ce9178;
         }
 
         .token-NUMBER {
             background-color: rgba(181, 206, 168, 0.3);
-            color: var(--number);
-            border: 1px solid var(--number);
+            color: #b5cea8;
+            border: 1px solid #b5cea8;
         }
 
         .token-OPERATOR,
         .token-WILDCARD {
             background-color: rgba(197, 134, 192, 0.3);
-            color: var(--operator);
-            border: 1px solid var(--operator);
+            color: #c586c0;
+            border: 1px solid #c586c0;
         }
 
         .token-PUNCTUATION {
             background-color: rgba(128, 128, 128, 0.3);
-            color: var(--punctuation);
-            border: 1px solid var(--punctuation);
+            color: #808080;
+            border: 1px solid #808080;
         }
 
-        /* AST Highlighting */
         .ast-key {
             color: #9cdcfe;
         }
 
         .ast-string {
-            color: var(--string);
+            color: #ce9178;
         }
 
         .ast-number {
-            color: var(--number);
+            color: #b5cea8;
         }
 
         .ast-boolean {
-            color: var(--keyword);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            border: 1px solid var(--border);
-            padding: 6px 10px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #333333;
-            color: var(--keyword);
-            font-weight: normal;
-        }
-
-        tr:nth-child(even) {
-            background-color: rgba(255, 255, 255, 0.02);
-        }
-
-        tr:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+            color: #569cd6;
         }
 
         .msg-error {
-            color: #f44747;
-            background: rgba(244, 71, 71, 0.1);
-            padding: 8px;
-            border-left: 3px solid #f44747;
+            color: #ffb4ab;
+            background: rgba(147, 0, 10, 0.3);
+            padding: 12px;
+            margin: 10px;
+            border-left: 4px solid #ffb4ab;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
         }
 
         .msg-success {
-            color: #89d185;
-            background: rgba(137, 209, 133, 0.1);
-            padding: 8px;
-            border-left: 3px solid #89d185;
+            color: #62fae3;
+            background: rgba(0, 107, 95, 0.3);
+            padding: 12px;
+            margin: 10px;
+            border-left: 4px solid #62fae3;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
         }
 
-        .empty-state {
-            color: #666;
-            font-style: italic;
-            display: flex;
-            height: 100%;
-            align-items: center;
-            justify-content: center;
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #131315;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #353437;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #859490;
         }
     </style>
 </head>
 
-<body>
-    <div class="header">
-        <h1>MiniSQL Studio</h1>
-        <button onclick="executeQuery()">&#9654; Run Query</button>
+<body class="bg-background text-on-background h-screen overflow-hidden flex flex-col font-ui-body text-ui-body">
+    <!-- TopNavBar -->
+    <header
+        class="bg-zinc-900 flex items-center justify-between px-4 h-12 w-full z-50 docked full-width top-0 border-b border-zinc-800 flat no shadows font-inter text-sm antialiased text-teal-400">
+        <div class="flex items-center gap-4">
+            <span class="text-base font-bold tracking-tight text-teal-400">MiniSQL Studio</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <span class="text-zinc-500 font-ui-label text-ui-label tracking-widest uppercase">READY</span>
+            <div class="flex items-center gap-4">
+                <button onclick="executeQuery()"
+                    class="text-zinc-500 hover:text-teal-300 hover:bg-zinc-800/50 transition-colors duration-150 ease-in-out p-sm rounded"><span
+                        class="material-symbols-outlined text-[18px]">play_arrow</span></button>
+                <button
+                    class="text-zinc-500 hover:text-teal-300 hover:bg-zinc-800/50 transition-colors duration-150 ease-in-out p-sm rounded"><span
+                        class="material-symbols-outlined text-[18px]">save</span></button>
+                <button
+                    class="text-zinc-500 hover:text-teal-300 hover:bg-zinc-800/50 transition-colors duration-150 ease-in-out p-sm rounded"><span
+                        class="material-symbols-outlined text-[18px]">settings</span></button>
+            </div>
+        </div>
+    </header>
+    <div class="flex flex-1 overflow-hidden">
+        <!-- SideNavBar -->
+        <nav
+            class="bg-zinc-900 flex flex-col w-16 h-full left-0 py-4 items-center gap-8 border-r border-zinc-800 flat no shadows font-inter text-[10px] uppercase tracking-widest text-teal-400">
+            <div class="flex flex-col gap-6 w-full">
+                <button
+                    class="text-teal-400 bg-zinc-800/50 border-l-2 border-teal-400 flex flex-col items-center justify-center gap-xs py-2 w-full cursor-pointer transition-all duration-200">
+                    <span class="material-symbols-outlined text-[20px]">folder</span>
+                    <span class="text-[9px]">Explorer</span>
+                </button>
+                <button
+                    class="text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300 flex flex-col items-center justify-center gap-xs py-2 w-full cursor-pointer transition-all duration-200 border-l-2 border-transparent">
+                    <span class="material-symbols-outlined text-[20px]">history</span>
+                    <span class="text-[9px]">History</span>
+                </button>
+            </div>
+            <div class="mt-auto w-full pb-6">
+                <button
+                    class="text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300 flex flex-col items-center justify-center gap-xs py-2 w-full cursor-pointer transition-all duration-200 border-l-2 border-transparent">
+                    <span class="material-symbols-outlined text-[20px]">help_outline</span>
+                    <span class="text-[9px]">Help</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Workspace Area -->
+        <main class="flex-1 flex flex-col pt-0 overflow-hidden bg-background">
+            <!-- Editor and Analysis Split -->
+            <div class="flex flex-1 pb-6 overflow-hidden">
+
+                <!-- Left Panel: SQL Editor -->
+                <section class="flex-[6] flex flex-col border-r border-outline-variant/30 bg-[#09090b]">
+                    <div
+                        class="h-10 flex items-center justify-between px-md border-b border-outline-variant/30 bg-surface-container-low min-h-[40px]">
+                        <span
+                            class="font-ui-label text-ui-label text-on-surface-variant uppercase tracking-widest">query.sql</span>
+                        <button onclick="executeQuery()"
+                            class="flex items-center gap-xs border border-primary text-primary px-sm py-1 rounded font-ui-label text-ui-label hover:bg-primary/10 transition-colors">
+                            <span class="material-symbols-outlined text-[14px]">play_arrow</span> Run
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-hidden p-0 font-code-main text-code-main text-on-surface flex">
+                        <textarea id="queryInput"
+                            class="w-full h-full bg-transparent text-on-surface p-4 font-code-main focus:outline-none resize-none"
+                            spellcheck="false"
+                            placeholder="-- Try this:&#10;CREATE TABLE users (id, name, age);&#10;INSERT INTO users VALUES (1, 'Alice', 20);&#10;SELECT * FROM users;"></textarea>
+                    </div>
+                </section>
+
+                <!-- Right Panel: AST & Tokens -->
+                <section class="flex-[4] flex flex-col bg-surface border-outline-variant/30">
+                    <div
+                        class="h-10 flex border-b border-outline-variant/30 bg-surface-container-low px-sm gap-md min-h-[40px]">
+                        <div
+                            class="h-full flex items-center px-sm font-ui-label text-ui-label text-primary border-t-2 border-transparent border-b-2 border-primary bg-transparent text-[12px] uppercase">
+                            Lexer & Parser Output
+                        </div>
+                    </div>
+
+                    <!-- View Content -->
+                    <div class="flex-1 overflow-auto p-md font-code-sm text-code-sm flex flex-col gap-6">
+
+                        <div>
+                            <div class="text-outline-variant mb-2 uppercase tracking-widest text-[10px] font-bold">1.
+                                Tokens</div>
+                            <div id="tokensArea"
+                                class="flex flex-wrap gap-1 p-2 bg-surface-container-lowest rounded border border-outline-variant/20 min-h-[60px]">
+                                <div class="text-outline-variant italic w-full text-center py-2">Run a query to see
+                                    tokens...</div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 flex flex-col">
+                            <div class="text-outline-variant mb-2 uppercase tracking-widest text-[10px] font-bold">2.
+                                Abstract Syntax Tree</div>
+                            <pre id="astArea"
+                                class="flex-1 bg-surface-container-lowest p-3 rounded border border-outline-variant/20 overflow-auto whitespace-pre-wrap leading-relaxed"><div class="text-outline-variant italic w-full text-center py-2">Run a query to see AST...</div></pre>
+                        </div>
+
+                    </div>
+                </section>
+            </div>
+
+            <!-- Bottom Panel: Results Grid -->
+            <section class="h-48 border-t border-outline-variant/30 flex flex-col bg-[#18181b] z-20"
+                style="margin-bottom: 24px;">
+                <div
+                    class="h-8 flex items-center px-md border-b border-outline-variant/30 bg-surface-container-low font-ui-label text-ui-label text-on-surface-variant gap-lg min-h-[32px]">
+                    <span class="uppercase tracking-widest text-primary text-[10px] font-bold">Results</span>
+                </div>
+                <div id="resultArea" class="flex-1 overflow-auto relative">
+                    <div class="text-outline-variant italic w-full text-center py-8">Execution results will appear
+                        here...</div>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <div class="workspace">
-        <div class="panel editor-panel">
-            <div class="panel-header">SQL Editor</div>
-            <div class="panel-content" style="padding: 0;">
-                <textarea id="queryInput" style="padding: 10px;"
-                    placeholder="-- Try these sequentially:&#10;CREATE TABLE users (id, name, age);&#10;INSERT INTO users VALUES (1, 'Alice', 20);&#10;SELECT * FROM users;"></textarea>
-            </div>
-        </div>
-
-        <div class="panel"
-            style="display: grid; grid-template-rows: 1fr 1fr; border: none; background: transparent; gap: 10px;">
-            <div class="panel">
-                <div class="panel-header">1. Lexical Analysis (Tokens)</div>
-                <div class="panel-content" id="tokensArea">
-                    <div class="empty-state">Run a query to see Lexer output</div>
-                </div>
-            </div>
-            <div class="panel">
-                <div class="panel-header">2. Syntax Analysis (AST)</div>
-                <div class="panel-content" id="astArea">
-                    <div class="empty-state">Run a query to see AST output</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="panel-header">3. Query Execution Result</div>
-            <div class="panel-content" id="resultArea">
-                <div class="empty-state">No execution results</div>
-            </div>
-        </div>
-    </div>
+    <!-- Footer -->
+    <footer
+        class="bg-zinc-900 fixed bottom-0 left-0 w-full h-6 flex items-center justify-between px-4 z-50 border-t border-zinc-800 font-inter text-[10px] font-medium text-teal-400">
+        <span class="text-amber-400 flex items-center gap-1"><span
+                class="material-symbols-outlined text-[12px]">check_circle</span> Ready</span>
+        <span id="rowCountFooter" class="text-zinc-500">Row Count: 0</span>
+        <span class="text-zinc-500">MiniSQL v1.0.4</span>
+    </footer>
 
     <script>
+        // Syntax Highlighter for AST JSON
         function syntaxHighlight(json) {
             if (typeof json != 'string') json = JSON.stringify(json, undefined, 2);
             json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -293,9 +351,10 @@
             const query = document.getElementById('queryInput').value;
             if (!query.trim()) return;
 
-            document.getElementById('resultArea').innerHTML = '<div class="empty-state">Executing...</div>';
+            document.getElementById('resultArea').innerHTML = '<div class="text-outline-variant italic w-full text-center py-8">Executing target query...</div>';
             document.getElementById('tokensArea').innerHTML = '';
             document.getElementById('astArea').innerHTML = '';
+            document.getElementById('rowCountFooter').innerText = 'Row Count: 0';
 
             try {
                 const res = await fetch('/execute', {
@@ -306,7 +365,7 @@
 
                 const data = await res.json();
 
-                // Tokens
+                // Render Tokens
                 const tokensArea = document.getElementById('tokensArea');
                 if (data.tokens && data.tokens.length > 0) {
                     data.tokens.forEach(t => {
@@ -317,41 +376,51 @@
                         tokensArea.appendChild(span);
                     });
                 } else {
-                    tokensArea.innerHTML = '<div class="empty-state">No tokens</div>';
+                    tokensArea.innerHTML = '<div class="text-outline-variant italic">No tokens generated.</div>';
                 }
 
-                // AST
+                // Render AST
                 if (data.ast) {
-                    const pre = document.createElement('pre'); pre.style.margin = '0';
-                    pre.innerHTML = syntaxHighlight(data.ast);
-                    document.getElementById('astArea').appendChild(pre);
+                    document.getElementById('astArea').innerHTML = syntaxHighlight(data.ast);
                 }
 
-                // Results
+                // Render Results
                 const resultArea = document.getElementById('resultArea');
                 if (data.error) {
-                    resultArea.innerHTML = `<div class="msg-error"><b>Error:</b> ${data.error}</div>`;
+                    resultArea.innerHTML = `<div class="msg-error"><span class="font-bold">Error:</span> ${data.error}</div>`;
                 } else if (typeof data.result === 'string') {
-                    resultArea.innerHTML = `<div class="msg-success"><b>Success:</b> ${data.result}</div>`;
+                    resultArea.innerHTML = `<div class="msg-success"><span class="font-bold">Success:</span> ${data.result}</div>`;
                 } else if (Array.isArray(data.result)) {
+                    document.getElementById('rowCountFooter').innerText = `Row Count: ${data.result.length}`;
+
                     if (data.result.length === 0) {
                         resultArea.innerHTML = `<div class="msg-success">0 rows returned.</div>`;
                     } else {
+                        // Generate Tailwind Styled Table
                         let headers = Object.keys(data.result[0]);
-                        let tableHtml = '<table><tr>';
-                        headers.forEach(h => tableHtml += `<th>${h}</th>`);
-                        tableHtml += '</tr>';
+                        let tableHtml = '<table class="w-full text-left border-collapse font-ui-body text-ui-body"><thead class="sticky top-0 bg-surface-container-low border-b border-outline-variant/30 z-10"><tr>';
 
+                        // Table Headers
+                        headers.forEach(h => {
+                            tableHtml += `<th class="py-2 px-md font-medium text-on-surface-variant border-r border-outline-variant/20 whitespace-nowrap">${h}</th>`;
+                        });
+                        tableHtml += '</tr></thead><tbody>';
+
+                        // Table Rows
                         data.result.forEach(row => {
-                            tableHtml += '<tr>';
-                            headers.forEach(h => tableHtml += `<td>${row[h]}</td>`);
+                            tableHtml += '<tr class="hover:bg-surface-container-high transition-colors group border-b border-outline-variant/10">';
+                            headers.forEach(h => {
+                                tableHtml += `<td class="py-2 px-md text-on-surface border-r border-outline-variant/20 whitespace-nowrap">${row[h] !== undefined ? row[h] : 'NULL'}</td>`;
+                            });
                             tableHtml += '</tr>';
                         });
-                        resultArea.innerHTML = tableHtml + '</table>';
+                        tableHtml += '</tbody></table>';
+
+                        resultArea.innerHTML = tableHtml;
                     }
                 }
             } catch (e) {
-                document.getElementById('resultArea').innerHTML = `<div class="msg-error">Connection Error</div>`;
+                document.getElementById('resultArea').innerHTML = `<div class="msg-error">Server Connection Failed. Is app.py running?</div>`;
             }
         }
     </script>
