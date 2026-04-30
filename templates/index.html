@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniSQL Studio</title>
+    <style>
+        /* Workspace Theme styling */
+        :root {
+            --bg: #1e1e1e;
+            --panel-bg: #252526;
+            --border: #3c3c3c;
+            --text: #d4d4d4;
+            --primary: #0e639c;
+            --primary-hover: #1177bb;
+            --keyword: #569cd6;
+            --identifier: #4ec9b0;
+            --string: #ce9178;
+            --number: #b5cea8;
+            --operator: #c586c0;
+            --punctuation: #808080;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 10px 20px;
+            background: #333;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--keyword);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 200px 1fr;
+            gap: 10px;
+            padding: 10px;
+            flex: 1;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #2d2d2d;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-bottom: 1px solid var(--border);
+            color: #ccc;
+        }
+
+        .panel-content {
+            padding: 10px;
+            overflow-y: auto;
+            flex: 1;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .editor-panel {
+            grid-column: 1 / 3;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            color: #dcdcaa;
+            border: none;
+            outline: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        /* Token Badges */
+        .token-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            color: #fff;
+            background-color: #444;
+        }
+
+        .token-KEYWORD {
+            background-color: rgba(86, 156, 214, 0.3);
+            color: var(--keyword);
+            border: 1px solid var(--keyword);
+        }
+
+        .token-IDENTIFIER {
+            background-color: rgba(78, 201, 176, 0.3);
+            color: var(--identifier);
+            border: 1px solid var(--identifier);
+        }
+
+        .token-STRING {
+            background-color: rgba(206, 145, 120, 0.3);
+            color: var(--string);
+            border: 1px solid var(--string);
+        }
+
+        .token-NUMBER {
+            background-color: rgba(181, 206, 168, 0.3);
+            color: var(--number);
+            border: 1px solid var(--number);
+        }
+
+        .token-OPERATOR,
+        .token-WILDCARD {
+            background-color: rgba(197, 134, 192, 0.3);
+            color: var(--operator);
+            border: 1px solid var(--operator);
+        }
+
+        .token-PUNCTUATION {
+            background-color: rgba(128, 128, 128, 0.3);
+            color: var(--punctuation);
+            border: 1px solid var(--punctuation);
+        }
+
+        /* AST Highlighting */
+        .ast-key {
+            color: #9cdcfe;
+        }
+
+        .ast-string {
+            color: var(--string);
+        }
+
+        .ast-number {
+            color: var(--number);
+        }
+
+        .ast-boolean {
+            color: var(--keyword);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333333;
+            color: var(--keyword);
+            font-weight: normal;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .msg-error {
+            color: #f44747;
+            background: rgba(244, 71, 71, 0.1);
+            padding: 8px;
+            border-left: 3px solid #f44747;
+        }
+
+        .msg-success {
+            color: #89d185;
+            background: rgba(137, 209, 133, 0.1);
+            padding: 8px;
+            border-left: 3px solid #89d185;
+        }
+
+        .empty-state {
+            color: #666;
+            font-style: italic;
+            display: flex;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>MiniSQL Studio</h1>
+        <button onclick="executeQuery()">&#9654; Run Query</button>
+    </div>
+
+    <div class="workspace">
+        <div class="panel editor-panel">
+            <div class="panel-header">SQL Editor</div>
+            <div class="panel-content" style="padding: 0;">
+                <textarea id="queryInput" style="padding: 10px;"
+                    placeholder="-- Try these sequentially:&#10;CREATE TABLE users (id, name, age);&#10;INSERT INTO users VALUES (1, 'Alice', 20);&#10;SELECT * FROM users;"></textarea>
+            </div>
+        </div>
+
+        <div class="panel"
+            style="display: grid; grid-template-rows: 1fr 1fr; border: none; background: transparent; gap: 10px;">
+            <div class="panel">
+                <div class="panel-header">1. Lexical Analysis (Tokens)</div>
+                <div class="panel-content" id="tokensArea">
+                    <div class="empty-state">Run a query to see Lexer output</div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">2. Syntax Analysis (AST)</div>
+                <div class="panel-content" id="astArea">
+                    <div class="empty-state">Run a query to see AST output</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">3. Query Execution Result</div>
+            <div class="panel-content" id="resultArea">
+                <div class="empty-state">No execution results</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function syntaxHighlight(json) {
+            if (typeof json != 'string') json = JSON.stringify(json, undefined, 2);
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'ast-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) cls = 'ast-key';
+                    else cls = 'ast-string';
+                } else if (/true|false/.test(match)) {
+                    cls = 'ast-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'ast-boolean';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        async function executeQuery() {
+            const query = document.getElementById('queryInput').value;
+            if (!query.trim()) return;
+
+            document.getElementById('resultArea').innerHTML = '<div class="empty-state">Executing...</div>';
+            document.getElementById('tokensArea').innerHTML = '';
+            document.getElementById('astArea').innerHTML = '';
+
+            try {
+                const res = await fetch('/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await res.json();
+
+                // Tokens
+                const tokensArea = document.getElementById('tokensArea');
+                if (data.tokens && data.tokens.length > 0) {
+                    data.tokens.forEach(t => {
+                        const span = document.createElement('span');
+                        span.className = `token-badge token-${t.type}`;
+                        span.textContent = t.value;
+                        span.title = t.type;
+                        tokensArea.appendChild(span);
+                    });
+                } else {
+                    tokensArea.innerHTML = '<div class="empty-state">No tokens</div>';
+                }
+
+                // AST
+                if (data.ast) {
+                    const pre = document.createElement('pre'); pre.style.margin = '0';
+                    pre.innerHTML = syntaxHighlight(data.ast);
+                    document.getElementById('astArea').appendChild(pre);
+                }
+
+                // Results
+                const resultArea = document.getElementById('resultArea');
+                if (data.error) {
+                    resultArea.innerHTML = `<div class="msg-error"><b>Error:</b> ${data.error}</div>`;
+                } else if (typeof data.result === 'string') {
+                    resultArea.innerHTML = `<div class="msg-success"><b>Success:</b> ${data.result}</div>`;
+                } else if (Array.isArray(data.result)) {
+                    if (data.result.length === 0) {
+                        resultArea.innerHTML = `<div class="msg-success">0 rows returned.</div>`;
+                    } else {
+                        let headers = Object.keys(data.result[0]);
+                        let tableHtml = '<table><tr>';
+                        headers.forEach(h => tableHtml += `<th>${h}</th>`);
+                        tableHtml += '</tr>';
+
+                        data.result.forEach(row => {
+                            tableHtml += '<tr>';
+                            headers.forEach(h => tableHtml += `<td>${row[h]}</td>`);
+                            tableHtml += '</tr>';
+                        });
+                        resultArea.innerHTML = tableHtml + '</table>';
+                    }
+                }
+            } catch (e) {
+                document.getElementById('resultArea').innerHTML = `<div class="msg-error">Connection Error</div>`;
+            }
+        }
+    </script>
+</body>
+
+</html>
