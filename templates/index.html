@@ -274,30 +274,36 @@
                 <section class="flex-[4] flex flex-col bg-surface border-outline-variant/30">
                     <div
                         class="h-10 flex border-b border-outline-variant/30 bg-surface-container-low px-sm gap-md min-h-[40px]">
-                        <div
-                            class="h-full flex items-center px-sm font-ui-label text-ui-label text-primary border-t-2 border-transparent border-b-2 border-primary bg-transparent text-[12px] uppercase">
-                            Lexer & Parser Output
-                        </div>
+                        <button id="tab-tokens" onclick="switchTab('tokens')"
+                            class="h-full flex items-center px-sm font-ui-label text-ui-label text-primary border-t-2 border-transparent border-b-2 border-primary bg-transparent text-[12px] uppercase cursor-pointer hover:bg-surface-container-high transition-colors">
+                            Tokens
+                        </button>
+                        <button id="tab-ast" onclick="switchTab('ast')"
+                            class="h-full flex items-center px-sm font-ui-label text-ui-label text-on-surface-variant border-t-2 border-transparent border-b-2 border-transparent bg-transparent text-[12px] uppercase cursor-pointer hover:bg-surface-container-high transition-colors">
+                            AST
+                        </button>
                     </div>
 
                     <!-- View Content -->
-                    <div class="flex-1 overflow-auto p-md font-code-sm text-code-sm flex flex-col gap-6">
+                    <div class="flex-1 overflow-auto p-md font-code-sm text-code-sm relative">
 
-                        <div>
+                        <!-- Tokens View -->
+                        <div id="view-tokens" class="flex flex-col h-full">
                             <div class="text-outline-variant mb-2 uppercase tracking-widest text-[10px] font-bold">1.
                                 Tokens</div>
                             <div id="tokensArea"
-                                class="flex flex-wrap gap-1 p-2 bg-surface-container-lowest rounded border border-outline-variant/20 min-h-[60px]">
+                                class="flex flex-wrap content-start items-start gap-1 p-2 bg-surface-container-lowest rounded border border-outline-variant/20 flex-1">
                                 <div class="text-outline-variant italic w-full text-center py-2">Run a query to see
                                     tokens...</div>
                             </div>
                         </div>
 
-                        <div class="flex-1 flex flex-col">
+                        <!-- AST View -->
+                        <div id="view-ast" class="flex flex-col h-full hidden">
                             <div class="text-outline-variant mb-2 uppercase tracking-widest text-[10px] font-bold">2.
                                 Abstract Syntax Tree</div>
                             <pre id="astArea"
-                                class="flex-1 bg-surface-container-lowest p-3 rounded border border-outline-variant/20 overflow-auto whitespace-pre-wrap leading-relaxed"><div class="text-outline-variant italic w-full text-center py-2">Run a query to see AST...</div></pre>
+                                class="flex-1 bg-surface-container-lowest p-3 rounded border border-outline-variant/20 overflow-auto whitespace-pre-wrap leading-relaxed m-0"><div class="text-outline-variant italic w-full text-center py-2">Run a query to see AST...</div></pre>
                         </div>
 
                     </div>
@@ -329,6 +335,33 @@
     </footer>
 
     <script>
+        function switchTab(tabId) {
+            const tabTokens = document.getElementById('tab-tokens');
+            const tabAst = document.getElementById('tab-ast');
+            const viewTokens = document.getElementById('view-tokens');
+            const viewAst = document.getElementById('view-ast');
+
+            if (tabId === 'tokens') {
+                tabTokens.classList.remove('text-on-surface-variant', 'border-b-transparent');
+                tabTokens.classList.add('text-primary', 'border-b-primary');
+
+                tabAst.classList.remove('text-primary', 'border-b-primary');
+                tabAst.classList.add('text-on-surface-variant', 'border-b-transparent');
+
+                viewTokens.classList.remove('hidden');
+                viewAst.classList.add('hidden');
+            } else {
+                tabTokens.classList.remove('text-primary', 'border-b-primary');
+                tabTokens.classList.add('text-on-surface-variant', 'border-b-transparent');
+
+                tabAst.classList.remove('text-on-surface-variant', 'border-b-transparent');
+                tabAst.classList.add('text-primary', 'border-b-primary');
+
+                viewTokens.classList.add('hidden');
+                viewAst.classList.remove('hidden');
+            }
+        }
+
         // Syntax Highlighter for AST JSON
         function syntaxHighlight(json) {
             if (typeof json != 'string') json = JSON.stringify(json, undefined, 2);
