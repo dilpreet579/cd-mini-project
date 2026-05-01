@@ -319,10 +319,23 @@
 
                         <!-- AST View -->
                         <div id="view-ast" class="flex flex-col h-full hidden">
-                            <div class="text-outline-variant mb-2 uppercase tracking-widest text-[10px] font-bold">2.
-                                Abstract Syntax Tree</div>
-                            <pre id="astArea"
-                                class="flex-1 bg-surface-container-lowest p-3 rounded border border-outline-variant/20 overflow-auto whitespace-pre-wrap leading-relaxed m-0"><div class="text-outline-variant italic w-full text-center py-2">Run a query to see AST...</div></pre>
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="text-outline-variant uppercase tracking-widest text-[10px] font-bold">2.
+                                    Abstract Syntax Tree</div>
+                            </div>
+                            <div id="astSvgContainer"
+                                class="flex-1 bg-surface-container-lowest p-3 rounded border border-outline-variant/20 overflow-auto relative">
+                                <div class="text-outline-variant italic w-full text-center py-2">Run a query to see
+                                    AST...</div>
+                            </div>
+                            <!-- Collapsible JSON view -->
+                            <details class="mt-2 bg-surface-container-lowest rounded border border-outline-variant/20">
+                                <summary
+                                    class="cursor-pointer p-2 text-[10px] font-bold uppercase tracking-widest text-outline-variant hover:text-primary transition-colors">
+                                    Raw JSON View</summary>
+                                <pre id="astArea"
+                                    class="p-3 pt-0 overflow-auto whitespace-pre-wrap leading-relaxed m-0 text-xs border-t border-outline-variant/20"></pre>
+                            </details>
                         </div>
 
                     </div>
@@ -349,7 +362,6 @@
         class="bg-zinc-900 fixed bottom-0 left-0 w-full h-6 flex items-center justify-between px-4 z-50 border-t border-zinc-800 font-inter text-[10px] font-medium text-teal-400">
         <span class="text-amber-400 flex items-center gap-1"><span
                 class="material-symbols-outlined text-[12px]">check_circle</span> Ready</span>
-        <span id="rowCountFooter" class="text-zinc-500">Row Count: 0</span>
         <span class="text-zinc-500">MiniSQL v1.0.4</span>
     </footer>
 
@@ -399,6 +411,130 @@
             });
         }
 
+        // SVG AST Drawer
+        function drawAST(astObj) {
+            let container = document.getElementById('astSvgContainer');
+            if (Object.keys(astObj).length === 0) {
+                container.innerHTML = '<div class="text-outline-variant italic w-full text-center py-2">Empty AST</div>';
+                return;
+            }
+
+            // Build hierarchical tree from AST JSON
+            function buildTree(name, data) {
+                let node = { name: name, children: [] };
+
+                if (name === 'command') {
+                    node.color = '#14b8a6'; // Teal for command node
+                } else if (Array.isArray(data) || (typeof data === 'object' && data !== null)) {
+                    node.color = '#3b82f6'; // Blue for property/list nodes
+                } else {
+                    node.color = '#3b82f6';
+                }
+
+                if (typeof data === 'object' && data !== null) {
+                    if (Array.isArray(data)) {
+                        data.forEach((item) => {
+                            if (typeof item === 'object' && item !== null) {
+                                node.children.push(buildTree('Item', item));
+                            } else {
+                                node.children.push({ name: String(item), children: [], color: '#64748b' });
+                            }
+                        });
+                    } else {
+                        Object.keys(data).forEach(key => {
+                            let childName = key === 'table' ? 'table_name' : key;
+                            node.children.push(buildTree(childName, data[key]));
+                        });
+                    }
+                } else {
+                    node.children.push({ name: String(data), children: [], color: '#64748b' });
+                }
+                return node;
+            }
+
+            let opName = astObj.command || 'Query';
+            if (astObj.command === 'CREATE') opName = 'CREATE TABLE';
+            else if (astObj.command === 'INSERT') opName = 'INSERT INTO';
+
+            let root = { name: 'Statement', children: [], color: '#8b5cf6' };
+            let opNode = { name: opName, children: [], color: '#14b8a6' };
+            root.children.push(opNode);
+
+            Object.keys(astObj).forEach(key => {
+                let nodeName = key === 'table' ? 'table_name' : key;
+                opNode.children.push(buildTree(nodeName, astObj[key]));
+            });
+
+            const nodeW = 140;
+            const nodeH = 40;
+            const gapX = 40;
+            const gapY = 60;
+
+            // Calculate widths
+            function setTreeWidth(node) {
+                if (node.children.length === 0) {
+                    node.treeWidth = nodeW;
+                    return node.treeWidth;
+                }
+                let cw = 0;
+                node.children.forEach((c, i) => {
+                    cw += setTreeWidth(c);
+                    if (i < node.children.length - 1) cw += gapX;
+                });
+                node.treeWidth = cw;
+                return cw;
+            }
+
+            // Assign positions
+            function setPositions(node, x, y) {
+                node.x = x + node.treeWidth / 2;
+                node.y = y;
+                let cx = x;
+                node.children.forEach(c => {
+                    setPositions(c, cx, y + nodeH + gapY);
+                    cx += c.treeWidth + gapX;
+                });
+            }
+
+            setTreeWidth(root);
+            setPositions(root, 20, 20);
+
+            const totalW = Math.max(root.treeWidth + 40, container.clientWidth);
+            const totalH = (function getDepth(n) {
+                if (n.children.length === 0) return n.y + nodeH;
+                return Math.max(...n.children.map(getDepth));
+            })(root) + 40;
+
+            let scale = 1;
+            if (totalW > container.clientWidth) {
+                scale = container.clientWidth / totalW;
+                if (scale < 0.5) scale = 0.5; // limit how small it gets
+            }
+
+            let html = `<svg width="${totalW}" height="${totalH}" style="min-width: 100%; min-height: 100%; transform-origin: top left; transform: scale(1);">`;
+
+            function drawEdges(n) {
+                n.children.forEach(c => {
+                    html += `<path d="M ${n.x} ${n.y + nodeH} L ${n.x} ${n.y + nodeH + gapY / 2} L ${c.x} ${n.y + nodeH + gapY / 2} L ${c.x} ${c.y}" stroke="#475569" stroke-width="2" fill="none" />`;
+                    // Arrowhead
+                    html += `<polygon points="${c.x - 4},${c.y - 4} ${c.x + 4},${c.y - 4} ${c.x},${c.y + 3}" fill="#475569" />`;
+                    drawEdges(c);
+                });
+            }
+
+            function drawNodes(n) {
+                html += `<rect x="${n.x - nodeW / 2}" y="${n.y}" width="${nodeW}" height="${nodeH}" rx="8" ry="8" fill="${n.color}" stroke="#1e293b" stroke-width="2" />`;
+                html += `<text x="${n.x}" y="${n.y + nodeH / 2 + 4}" fill="white" font-size="12" font-family="JetBrains Mono, monospace" font-weight="600" text-anchor="middle">${n.name}</text>`;
+                n.children.forEach(drawNodes);
+            }
+
+            drawEdges(root);
+            drawNodes(root);
+
+            html += `</svg>`;
+            container.innerHTML = html;
+        }
+
         async function executeQuery() {
             const query = document.getElementById('queryInput').value;
             if (!query.trim()) return;
@@ -406,7 +542,7 @@
             document.getElementById('resultArea').innerHTML = '<div class="text-outline-variant italic w-full text-center py-8">Executing target query...</div>';
             document.getElementById('tokensArea').innerHTML = '';
             document.getElementById('astArea').innerHTML = '';
-            document.getElementById('rowCountFooter').innerText = 'Row Count: 0';
+            document.getElementById('astSvgContainer').innerHTML = '<div class="text-outline-variant italic w-full text-center py-8">Executing target query...</div>';
 
             const pipeLex = document.getElementById('pipe-lex');
             const pipeSyn = document.getElementById('pipe-syn');
@@ -475,6 +611,7 @@
 
                 // Render AST
                 if (data.ast) {
+                    drawAST(data.ast);
                     document.getElementById('astArea').innerHTML = syntaxHighlight(data.ast);
 
                     pipeSyn.classList.remove('bg-primary/20', 'text-primary', 'border-primary/50');
@@ -490,7 +627,8 @@
                     resultArea.innerHTML = `<div class="msg-error"><span class="font-bold">Error:</span> ${data.error}</div>`;
 
                     // If error is related to syntax or AST is missing, mark Syntax Analysis as failed
-                    if (data.error.toLowerCase().includes('syntax') || !data.ast) {
+                    const errStr = data.error.toLowerCase();
+                    if (errStr.includes('syntax') || errStr.includes('unsupported command') || errStr.includes('empty query') || errStr.includes('parser') || !data.ast) {
                         pipeSyn.classList.remove('bg-green-500/20', 'text-green-400', 'border-green-500/50', 'bg-primary/20', 'text-primary', 'border-primary/50');
                         pipeSyn.classList.add('bg-red-500/20', 'text-red-400', 'border-red-500/50');
                     }
@@ -502,7 +640,6 @@
                     pipeExe.classList.remove('bg-primary/20', 'text-primary', 'border-primary/50');
                     pipeExe.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
                 } else if (Array.isArray(data.result)) {
-                    document.getElementById('rowCountFooter').innerText = `Row Count: ${data.result.length}`;
                     pipeExe.classList.remove('bg-primary/20', 'text-primary', 'border-primary/50');
                     pipeExe.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
 
