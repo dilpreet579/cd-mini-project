@@ -34,13 +34,13 @@ A web-based Interactive SQL Compiler and Query Processor designed to visualize t
 
 ### Requirements
 - Python 3.8+
-- [Git](https://git-scm.com/downloads) (Optional, for cloning)
+
 
 ### Running Locally
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/cd-mini-project.git
+   git clone https://github.com/dilpreet579/cd-mini-project.git
    cd cd-mini-project
    ```
 

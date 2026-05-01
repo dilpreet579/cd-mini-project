@@ -271,24 +271,37 @@
         <aside id="sidebar-help"
             class="hidden bg-zinc-900 border-r border-zinc-800 w-64 h-full flex-col transition-all duration-300 shrink-0">
             <div class="h-10 flex items-center justify-between px-4 border-b border-zinc-800">
-                <span class="font-ui-label text-ui-label text-teal-400 uppercase tracking-widest text-[10px]">Help & Info</span>
+                <span class="font-ui-label text-ui-label text-teal-400 uppercase tracking-widest text-[10px]">Help &
+                    Info</span>
                 <button onclick="toggleHelp()"
                     class="text-zinc-500 hover:text-teal-400 material-symbols-outlined text-[16px]">close</button>
             </div>
-            <div id="helpContent" class="flex-1 overflow-y-auto overflow-x-hidden p-4 flex flex-col gap-4 text-xs text-zinc-300 leading-relaxed font-ui-body">
+            <div id="helpContent"
+                class="flex-1 overflow-y-auto overflow-x-hidden p-4 flex flex-col gap-4 text-xs text-zinc-300 leading-relaxed font-ui-body">
                 <div class="bg-zinc-800/30 border border-zinc-800/50 p-3 rounded">
-                    <h3 class="text-teal-400 font-bold uppercase tracking-wider text-[10px] mb-1">About MiniSQL Studio</h3>
-                    <p class="text-[11px] text-zinc-400">A web-based Interactive SQL Compiler and Query Processor designed to visualize step-by-step token and AST generation pipelines.</p>
+                    <h3 class="text-teal-400 font-bold uppercase tracking-wider text-[10px] mb-1">About MiniSQL Studio
+                    </h3>
+                    <p class="text-[11px] text-zinc-400">A web-based Interactive SQL Compiler and Query Processor
+                        designed to visualize step-by-step token and AST generation pipelines.</p>
                 </div>
-                
-                <h3 class="text-teal-400 font-bold uppercase tracking-wider text-[10px] mt-2 mb-[-8px]">Supported Grammar</h3>
+
+                <h3 class="text-teal-400 font-bold uppercase tracking-wider text-[10px] mt-2 mb-[-8px]">Supported
+                    Grammar</h3>
                 <ul class="list-disc pl-4 space-y-2 text-zinc-400 text-[11px]">
                     <li><span class="text-teal-300 font-code-main">CREATE TABLE</span> tbl_name (col1, col2)</li>
-                    <li><span class="text-teal-300 font-code-main">INSERT INTO</span> tbl_name <span class="text-teal-300 font-code-main">VALUES</span> (val1, val2)</li>
-                    <li><span class="text-teal-300 font-code-main">SELECT</span> * <span class="text-teal-300 font-code-main">FROM</span> tbl_name</li>
-                    <li><span class="text-teal-300 font-code-main">SELECT</span> col1 <span class="text-teal-300 font-code-main">FROM</span> tbl_name <span class="text-teal-300 font-code-main">WHERE</span> col1 = val1 <span class="text-teal-300 font-code-main">AND</span> col2 = val2</li>
-                    <li><span class="text-teal-300 font-code-main">UPDATE</span> tbl_name <span class="text-teal-300 font-code-main">SET</span> col=val <span class="text-teal-300 font-code-main">WHERE</span> cond</li>
-                    <li><span class="text-teal-300 font-code-main">DELETE FROM</span> tbl_name <span class="text-teal-300 font-code-main">WHERE</span> cond</li>
+                    <li><span class="text-teal-300 font-code-main">INSERT INTO</span> tbl_name <span
+                            class="text-teal-300 font-code-main">VALUES</span> (val1, val2)</li>
+                    <li><span class="text-teal-300 font-code-main">SELECT</span> * <span
+                            class="text-teal-300 font-code-main">FROM</span> tbl_name</li>
+                    <li><span class="text-teal-300 font-code-main">SELECT</span> col1 <span
+                            class="text-teal-300 font-code-main">FROM</span> tbl_name <span
+                            class="text-teal-300 font-code-main">WHERE</span> col1 = val1 <span
+                            class="text-teal-300 font-code-main">AND</span> col2 = val2</li>
+                    <li><span class="text-teal-300 font-code-main">UPDATE</span> tbl_name <span
+                            class="text-teal-300 font-code-main">SET</span> col=val <span
+                            class="text-teal-300 font-code-main">WHERE</span> cond</li>
+                    <li><span class="text-teal-300 font-code-main">DELETE FROM</span> tbl_name <span
+                            class="text-teal-300 font-code-main">WHERE</span> cond</li>
                     <li><span class="text-teal-300 font-code-main">DROP TABLE</span> tbl_name</li>
                 </ul>
 
@@ -324,7 +337,7 @@
                         <textarea id="queryInput"
                             class="w-full h-full bg-transparent text-on-surface p-4 font-code-main focus:outline-none resize-none"
                             spellcheck="false"
-                            placeholder="-- Try this:&#10;CREATE TABLE users (id, name, age);&#10;INSERT INTO users VALUES (1, 'Alice', 20);&#10;SELECT * FROM users;"></textarea>
+                            placeholder="-- Try this:&#10;CREATE TABLE users (id, name, age, city);&#10;INSERT INTO users VALUES (1, 'Alice', 20, 'New York');&#10;SELECT * FROM users;"></textarea>
                     </div>
                 </section>
 
@@ -612,6 +625,14 @@
         // Output the examples initially
         window.addEventListener('DOMContentLoaded', () => {
             renderExamples();
+
+            // Add Ctrl+Enter shortcut for execution
+            document.getElementById('queryInput').addEventListener('keydown', function (e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    executeQuery();
+                }
+            });
         });
 
         function switchTab(tabId) {
@@ -897,7 +918,7 @@
                         resultArea.innerHTML = `<div class="msg-success">0 rows returned.</div>`;
                     } else {
                         // Generate Tailwind Styled Table
-                        let headers = Object.keys(data.result[0]);
+                        let headers = data.columns || Object.keys(data.result[0]);
                         let tableHtml = '<table class="w-full text-left border-collapse font-ui-body text-ui-body"><thead class="sticky top-0 bg-surface-container-low border-b border-outline-variant/30 z-10"><tr>';
 
                         // Table Headers

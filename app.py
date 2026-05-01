@@ -263,19 +263,23 @@ def parse_and_execute(tokens):
                 rows = filtered_rows
 
             # --- EVALUATE SELECT COLUMNS ---
+            result_columns = []
             if ast["select_columns"] != ["*"]:
+                result_columns = [
+                    k for k in ast["select_columns"] if k in db[table_name]["columns"]
+                ]
                 projected_rows = []
                 for r in rows:
                     # Simple projection, ignoring SUM() wrappers for the bare execution
                     try:
-                        projected_rows.append(
-                            {k: r[k] for k in ast["select_columns"] if k in r}
-                        )
+                        projected_rows.append({k: r[k] for k in result_columns})
                     except Exception:
                         pass
                 rows = projected_rows
+            else:
+                result_columns = db[table_name]["columns"]
 
-            return {"result": rows, "ast": ast}
+            return {"result": rows, "ast": ast, "columns": result_columns}
 
         else:
             return {
