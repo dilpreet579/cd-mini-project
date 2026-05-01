@@ -230,7 +230,7 @@
                 </button>
             </div>
             <div class="mt-auto w-full pb-6">
-                <button
+                <button id="nav-help" onclick="toggleHelp()"
                     class="text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300 flex flex-col items-center justify-center gap-xs py-2 w-full cursor-pointer transition-all duration-200 border-l-2 border-transparent">
                     <span class="material-symbols-outlined text-[20px]">help_outline</span>
                     <span class="text-[9px]">Help</span>
@@ -264,6 +264,43 @@
             </div>
             <div id="examplesList" class="flex-1 overflow-y-auto overflow-x-hidden p-2 flex flex-col gap-2">
                 <!-- Examples will be rendered here by JS -->
+            </div>
+        </aside>
+
+        <!-- Sidebar Panel (Help) -->
+        <aside id="sidebar-help"
+            class="hidden bg-zinc-900 border-r border-zinc-800 w-64 h-full flex-col transition-all duration-300 shrink-0">
+            <div class="h-10 flex items-center justify-between px-4 border-b border-zinc-800">
+                <span class="font-ui-label text-ui-label text-teal-400 uppercase tracking-widest text-[10px]">Help & Info</span>
+                <button onclick="toggleHelp()"
+                    class="text-zinc-500 hover:text-teal-400 material-symbols-outlined text-[16px]">close</button>
+            </div>
+            <div id="helpContent" class="flex-1 overflow-y-auto overflow-x-hidden p-4 flex flex-col gap-4 text-xs text-zinc-300 leading-relaxed font-ui-body">
+                <div class="bg-zinc-800/30 border border-zinc-800/50 p-3 rounded">
+                    <h3 class="text-teal-400 font-bold uppercase tracking-wider text-[10px] mb-1">About MiniSQL Studio</h3>
+                    <p class="text-[11px] text-zinc-400">A web-based Interactive SQL Compiler and Query Processor designed to visualize step-by-step token and AST generation pipelines.</p>
+                </div>
+                
+                <h3 class="text-teal-400 font-bold uppercase tracking-wider text-[10px] mt-2 mb-[-8px]">Supported Grammar</h3>
+                <ul class="list-disc pl-4 space-y-2 text-zinc-400 text-[11px]">
+                    <li><span class="text-teal-300 font-code-main">CREATE TABLE</span> tbl_name (col1, col2)</li>
+                    <li><span class="text-teal-300 font-code-main">INSERT INTO</span> tbl_name <span class="text-teal-300 font-code-main">VALUES</span> (val1, val2)</li>
+                    <li><span class="text-teal-300 font-code-main">SELECT</span> * <span class="text-teal-300 font-code-main">FROM</span> tbl_name</li>
+                    <li><span class="text-teal-300 font-code-main">SELECT</span> col1 <span class="text-teal-300 font-code-main">FROM</span> tbl_name <span class="text-teal-300 font-code-main">WHERE</span> col1 = val1 <span class="text-teal-300 font-code-main">AND</span> col2 = val2</li>
+                    <li><span class="text-teal-300 font-code-main">UPDATE</span> tbl_name <span class="text-teal-300 font-code-main">SET</span> col=val <span class="text-teal-300 font-code-main">WHERE</span> cond</li>
+                    <li><span class="text-teal-300 font-code-main">DELETE FROM</span> tbl_name <span class="text-teal-300 font-code-main">WHERE</span> cond</li>
+                    <li><span class="text-teal-300 font-code-main">DROP TABLE</span> tbl_name</li>
+                </ul>
+
+                <hr class="border-zinc-800 my-2">
+
+                <div class="flex flex-col gap-1">
+                    <h3 class="text-teal-400 font-bold uppercase tracking-wider text-[10px]">Project By</h3>
+                    <p class="text-zinc-400 text-[11px]">
+                        <strong>Ishita Gupta</strong> (231210050)<br>
+                        <strong>Dilpreet Singh</strong> (231210041)
+                    </p>
+                </div>
             </div>
         </aside>
 
@@ -429,14 +466,14 @@
         ];
 
         function resetNavSelection() {
-            ['nav-explorer', 'nav-history', 'nav-examples'].forEach(id => {
+            ['nav-explorer', 'nav-history', 'nav-examples', 'nav-help'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
                     el.classList.remove('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
                     el.classList.add('text-zinc-600', 'border-transparent');
                 }
             });
-            ['sidebar-history', 'sidebar-examples'].forEach(id => {
+            ['sidebar-history', 'sidebar-examples', 'sidebar-help'].forEach(id => {
                 const sidebar = document.getElementById(id);
                 if (sidebar) {
                     sidebar.classList.add('hidden');
@@ -489,6 +526,25 @@
             const navExplorer = document.getElementById('nav-explorer');
             navExplorer.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
             navExplorer.classList.remove('text-zinc-600', 'border-transparent');
+        }
+
+        function toggleHelp() {
+            const sidebar = document.getElementById('sidebar-help');
+            const navHelp = document.getElementById('nav-help');
+            const wasHidden = sidebar.classList.contains('hidden');
+
+            resetNavSelection();
+
+            if (wasHidden) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('flex');
+                navHelp.classList.remove('text-zinc-600', 'border-transparent');
+                navHelp.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+            } else {
+                const navExplorer = document.getElementById('nav-explorer');
+                navExplorer.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+                navExplorer.classList.remove('text-zinc-600', 'border-transparent');
+            }
         }
 
         function renderExamples() {
