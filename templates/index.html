@@ -206,20 +206,7 @@
         <div class="flex items-center gap-4">
             <span class="text-base font-bold tracking-tight text-teal-400">MiniSQL Studio</span>
         </div>
-        <div class="flex items-center gap-6">
-            <span class="text-zinc-500 font-ui-label text-ui-label tracking-widest uppercase">READY</span>
-            <div class="flex items-center gap-4">
-                <button onclick="executeQuery()"
-                    class="text-zinc-500 hover:text-teal-300 hover:bg-zinc-800/50 transition-colors duration-150 ease-in-out p-sm rounded"><span
-                        class="material-symbols-outlined text-[18px]">play_arrow</span></button>
-                <button
-                    class="text-zinc-500 hover:text-teal-300 hover:bg-zinc-800/50 transition-colors duration-150 ease-in-out p-sm rounded"><span
-                        class="material-symbols-outlined text-[18px]">save</span></button>
-                <button
-                    class="text-zinc-500 hover:text-teal-300 hover:bg-zinc-800/50 transition-colors duration-150 ease-in-out p-sm rounded"><span
-                        class="material-symbols-outlined text-[18px]">settings</span></button>
-            </div>
-        </div>
+
     </header>
     <div class="flex flex-1 overflow-hidden">
         <!-- SideNavBar -->
@@ -235,6 +222,11 @@
                     class="text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300 flex flex-col items-center justify-center gap-xs py-2 w-full cursor-pointer transition-all duration-200 border-l-2 border-transparent">
                     <span class="material-symbols-outlined text-[20px]">history</span>
                     <span class="text-[9px]">History</span>
+                </button>
+                <button id="nav-examples" onclick="toggleExamples()"
+                    class="text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300 flex flex-col items-center justify-center gap-xs py-2 w-full cursor-pointer transition-all duration-200 border-l-2 border-transparent">
+                    <span class="material-symbols-outlined text-[20px]">tips_and_updates</span>
+                    <span class="text-[9px]">Examples</span>
                 </button>
             </div>
             <div class="mt-auto w-full pb-6">
@@ -258,6 +250,20 @@
             <div id="historyList" class="flex-1 overflow-y-auto overflow-x-hidden p-2 flex flex-col gap-2">
                 <div class="text-zinc-600 text-xs italic p-2 text-center" id="emptyHistoryMsg">No history yet. Run a
                     query.</div>
+            </div>
+        </aside>
+
+        <!-- Sidebar Panel (Examples) -->
+        <aside id="sidebar-examples"
+            class="hidden bg-zinc-900 border-r border-zinc-800 w-64 h-full flex-col transition-all duration-300 shrink-0">
+            <div class="h-10 flex items-center justify-between px-4 border-b border-zinc-800">
+                <span class="font-ui-label text-ui-label text-teal-400 uppercase tracking-widest text-[10px]">Query
+                    Examples</span>
+                <button onclick="toggleExamples()"
+                    class="text-zinc-500 hover:text-teal-400 material-symbols-outlined text-[16px]">close</button>
+            </div>
+            <div id="examplesList" class="flex-1 overflow-y-auto overflow-x-hidden p-2 flex flex-col gap-2">
+                <!-- Examples will be rendered here by JS -->
             </div>
         </aside>
 
@@ -383,46 +389,130 @@
     <script>
         let queryHistory = [];
 
+        const queryExamples = [
+            {
+                title: "1. Create Table",
+                query: "CREATE TABLE users (id, name, age, city);\n"
+            },
+            {
+                title: "2. Insert Record",
+                query: "INSERT INTO users VALUES (1, 'Alice', 20, 'New York');\n"
+            },
+            {
+                title: "3. Select All",
+                query: "SELECT * FROM users;\n"
+            },
+            {
+                title: "4. Select Specific Columns",
+                query: "SELECT name, age FROM users;\n"
+            },
+            {
+                title: "5. Select with Where",
+                query: "SELECT * FROM users WHERE age > 18;\n"
+            },
+            {
+                title: "6. Select with Where & And",
+                query: "SELECT * FROM users WHERE age > 18 AND city = 'New York';\n"
+            },
+            {
+                title: "7. Update Record",
+                query: "UPDATE users SET age = 21 WHERE id = 1;\n"
+            },
+            {
+                title: "8. Delete Record",
+                query: "DELETE FROM users WHERE id = 1;\n"
+            },
+            {
+                title: "9. Drop Table",
+                query: "DROP TABLE users;\n"
+            }
+        ];
+
+        function resetNavSelection() {
+            ['nav-explorer', 'nav-history', 'nav-examples'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.remove('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+                    el.classList.add('text-zinc-600', 'border-transparent');
+                }
+            });
+            ['sidebar-history', 'sidebar-examples'].forEach(id => {
+                const sidebar = document.getElementById(id);
+                if (sidebar) {
+                    sidebar.classList.add('hidden');
+                    sidebar.classList.remove('flex');
+                }
+            });
+        }
+
         function toggleHistory() {
             const sidebar = document.getElementById('sidebar-history');
-            const navExplorer = document.getElementById('nav-explorer');
             const navHistory = document.getElementById('nav-history');
+            const wasHidden = sidebar.classList.contains('hidden');
 
-            if (sidebar.classList.contains('hidden')) {
+            resetNavSelection();
+
+            if (wasHidden) {
                 sidebar.classList.remove('hidden');
                 sidebar.classList.add('flex');
-
                 navHistory.classList.remove('text-zinc-600', 'border-transparent');
                 navHistory.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
-
-                navExplorer.classList.remove('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
-                navExplorer.classList.add('text-zinc-600', 'border-transparent');
             } else {
-                sidebar.classList.add('hidden');
-                sidebar.classList.remove('flex');
+                const navExplorer = document.getElementById('nav-explorer');
+                navExplorer.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+                navExplorer.classList.remove('text-zinc-600', 'border-transparent');
+            }
+        }
 
-                navHistory.classList.add('text-zinc-600', 'border-transparent');
-                navHistory.classList.remove('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+        function toggleExamples() {
+            const sidebar = document.getElementById('sidebar-examples');
+            const navExamples = document.getElementById('nav-examples');
+            const wasHidden = sidebar.classList.contains('hidden');
 
+            resetNavSelection();
+
+            if (wasHidden) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('flex');
+                navExamples.classList.remove('text-zinc-600', 'border-transparent');
+                navExamples.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+            } else {
+                const navExplorer = document.getElementById('nav-explorer');
                 navExplorer.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
                 navExplorer.classList.remove('text-zinc-600', 'border-transparent');
             }
         }
 
         function toggleExplorer() {
-            const sidebar = document.getElementById('sidebar-history');
+            resetNavSelection();
+
             const navExplorer = document.getElementById('nav-explorer');
-            const navHistory = document.getElementById('nav-history');
-
-            // Just hide history if it's open, since we don't have a real explorer panel right now
-            sidebar.classList.add('hidden');
-            sidebar.classList.remove('flex');
-
-            navHistory.classList.add('text-zinc-600', 'border-transparent');
-            navHistory.classList.remove('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
-
             navExplorer.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
             navExplorer.classList.remove('text-zinc-600', 'border-transparent');
+        }
+
+        function renderExamples() {
+            const examplesList = document.getElementById('examplesList');
+            let html = '';
+            queryExamples.forEach((ex, i) => {
+                const preview = ex.query.length > 50 ? ex.query.substring(0, 50) + '...' : ex.query;
+                html += `
+                <div class="group flex flex-col p-2 bg-zinc-800/30 hover:bg-zinc-800 border border-zinc-800/50 hover:border-zinc-700 rounded cursor-pointer transition-colors" onclick="loadFromExamples(${i})">
+                    <span class="text-teal-500 font-bold text-[10px] uppercase mb-1 tracking-wider">${ex.title}</span>
+                    <span class="text-zinc-400 text-xs font-code-main truncate">${preview.replace(/</g, '&lt;')}</span>
+                    <div class="flex justify-end items-center mt-1">
+                        <span class="text-teal-500 opacity-0 group-hover:opacity-100 material-symbols-outlined text-[14px]">edit_note</span>
+                    </div>
+                </div>
+                `;
+            });
+            examplesList.innerHTML = html;
+        }
+
+        function loadFromExamples(index) {
+            if (queryExamples[index]) {
+                document.getElementById('queryInput').value = queryExamples[index].query;
+            }
         }
 
         function addQueryToHistory(queryStr) {
@@ -462,6 +552,11 @@
                 document.getElementById('queryInput').value = queryHistory[index];
             }
         }
+
+        // Output the examples initially
+        window.addEventListener('DOMContentLoaded', () => {
+            renderExamples();
+        });
 
         function switchTab(tabId) {
             const tabTokens = document.getElementById('tab-tokens');
