@@ -226,12 +226,12 @@
         <nav
             class="bg-zinc-900 flex flex-col w-16 h-full left-0 py-4 items-center gap-8 border-r border-zinc-800 flat no shadows font-inter text-[10px] uppercase tracking-widest text-teal-400">
             <div class="flex flex-col gap-6 w-full">
-                <button
+                <button id="nav-explorer" onclick="toggleExplorer()"
                     class="text-teal-400 bg-zinc-800/50 border-l-2 border-teal-400 flex flex-col items-center justify-center gap-xs py-2 w-full cursor-pointer transition-all duration-200">
                     <span class="material-symbols-outlined text-[20px]">folder</span>
                     <span class="text-[9px]">Explorer</span>
                 </button>
-                <button
+                <button id="nav-history" onclick="toggleHistory()"
                     class="text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300 flex flex-col items-center justify-center gap-xs py-2 w-full cursor-pointer transition-all duration-200 border-l-2 border-transparent">
                     <span class="material-symbols-outlined text-[20px]">history</span>
                     <span class="text-[9px]">History</span>
@@ -245,6 +245,21 @@
                 </button>
             </div>
         </nav>
+
+        <!-- Sidebar Panel (History) -->
+        <aside id="sidebar-history"
+            class="hidden bg-zinc-900 border-r border-zinc-800 w-64 h-full flex-col transition-all duration-300 shrink-0">
+            <div class="h-10 flex items-center justify-between px-4 border-b border-zinc-800">
+                <span class="font-ui-label text-ui-label text-teal-400 uppercase tracking-widest text-[10px]">Query
+                    History</span>
+                <button onclick="toggleHistory()"
+                    class="text-zinc-500 hover:text-teal-400 material-symbols-outlined text-[16px]">close</button>
+            </div>
+            <div id="historyList" class="flex-1 overflow-y-auto overflow-x-hidden p-2 flex flex-col gap-2">
+                <div class="text-zinc-600 text-xs italic p-2 text-center" id="emptyHistoryMsg">No history yet. Run a
+                    query.</div>
+            </div>
+        </aside>
 
         <!-- Main Workspace Area -->
         <main class="flex-1 flex flex-col pt-0 overflow-hidden bg-background">
@@ -366,6 +381,88 @@
     </footer>
 
     <script>
+        let queryHistory = [];
+
+        function toggleHistory() {
+            const sidebar = document.getElementById('sidebar-history');
+            const navExplorer = document.getElementById('nav-explorer');
+            const navHistory = document.getElementById('nav-history');
+
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('flex');
+
+                navHistory.classList.remove('text-zinc-600', 'border-transparent');
+                navHistory.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+
+                navExplorer.classList.remove('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+                navExplorer.classList.add('text-zinc-600', 'border-transparent');
+            } else {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('flex');
+
+                navHistory.classList.add('text-zinc-600', 'border-transparent');
+                navHistory.classList.remove('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+
+                navExplorer.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+                navExplorer.classList.remove('text-zinc-600', 'border-transparent');
+            }
+        }
+
+        function toggleExplorer() {
+            const sidebar = document.getElementById('sidebar-history');
+            const navExplorer = document.getElementById('nav-explorer');
+            const navHistory = document.getElementById('nav-history');
+
+            // Just hide history if it's open, since we don't have a real explorer panel right now
+            sidebar.classList.add('hidden');
+            sidebar.classList.remove('flex');
+
+            navHistory.classList.add('text-zinc-600', 'border-transparent');
+            navHistory.classList.remove('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+
+            navExplorer.classList.add('text-teal-400', 'bg-zinc-800/50', 'border-teal-400');
+            navExplorer.classList.remove('text-zinc-600', 'border-transparent');
+        }
+
+        function addQueryToHistory(queryStr) {
+            if (!queryStr.trim()) return;
+            // Don't add if it's the exact same as the last one
+            if (queryHistory.length > 0 && queryHistory[0] === queryStr.trim()) return;
+
+            queryHistory.unshift(queryStr.trim());
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            if (queryHistory.length === 0) {
+                historyList.innerHTML = '<div class="text-zinc-600 text-xs italic p-2 text-center" id="emptyHistoryMsg">No history yet. Run a query.</div>';
+                return;
+            }
+
+            let html = '';
+            queryHistory.forEach((q, i) => {
+                const preview = q.length > 40 ? q.substring(0, 40) + '...' : q;
+                html += `
+                <div class="group flex flex-col p-2 bg-zinc-800/30 hover:bg-zinc-800 border border-zinc-800/50 hover:border-zinc-700 rounded cursor-pointer transition-colors" onclick="loadFromHistory(${i})">
+                    <span class="text-zinc-400 text-xs font-code-main truncate">${preview.replace(/</g, '&lt;')}</span>
+                    <div class="flex justify-between items-center mt-1">
+                        <span class="text-zinc-600 text-[9px] uppercase tracking-wider">Query ${queryHistory.length - i}</span>
+                        <span class="text-teal-500 opacity-0 group-hover:opacity-100 material-symbols-outlined text-[14px]">restore</span>
+                    </div>
+                </div>
+                `;
+            });
+            historyList.innerHTML = html;
+        }
+
+        function loadFromHistory(index) {
+            if (queryHistory[index]) {
+                document.getElementById('queryInput').value = queryHistory[index];
+            }
+        }
+
         function switchTab(tabId) {
             const tabTokens = document.getElementById('tab-tokens');
             const tabAst = document.getElementById('tab-ast');
@@ -538,6 +635,8 @@
         async function executeQuery() {
             const query = document.getElementById('queryInput').value;
             if (!query.trim()) return;
+
+            addQueryToHistory(query.trim());
 
             document.getElementById('resultArea').innerHTML = '<div class="text-outline-variant italic w-full text-center py-8">Executing target query...</div>';
             document.getElementById('tokensArea').innerHTML = '';
