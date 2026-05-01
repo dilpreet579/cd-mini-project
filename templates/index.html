@@ -272,6 +272,25 @@
 
                 <!-- Right Panel: AST & Tokens -->
                 <section class="flex-[4] flex flex-col bg-surface border-outline-variant/30">
+                    <!-- Pipeline Indicator -->
+                    <div
+                        class="h-10 flex items-center justify-between px-md border-b border-outline-variant/30 bg-surface-container-low min-h-[40px] gap-2">
+                        <div id="pipe-lex"
+                            class="flex-1 text-center py-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container rounded border border-outline-variant/30 transition-colors duration-300">
+                            Lexical Analysis
+                        </div>
+                        <div class="text-outline-variant material-symbols-outlined text-[14px]">arrow_forward</div>
+                        <div id="pipe-syn"
+                            class="flex-1 text-center py-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container rounded border border-outline-variant/30 transition-colors duration-300">
+                            Syntax Analysis
+                        </div>
+                        <div class="text-outline-variant material-symbols-outlined text-[14px]">arrow_forward</div>
+                        <div id="pipe-exe"
+                            class="flex-1 text-center py-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container rounded border border-outline-variant/30 transition-colors duration-300">
+                            Execution
+                        </div>
+                    </div>
+
                     <div
                         class="h-10 flex border-b border-outline-variant/30 bg-surface-container-low px-sm gap-md min-h-[40px]">
                         <button id="tab-tokens" onclick="switchTab('tokens')"
@@ -389,6 +408,20 @@
             document.getElementById('astArea').innerHTML = '';
             document.getElementById('rowCountFooter').innerText = 'Row Count: 0';
 
+            const pipeLex = document.getElementById('pipe-lex');
+            const pipeSyn = document.getElementById('pipe-syn');
+            const pipeExe = document.getElementById('pipe-exe');
+
+            // Reset pipeline
+            [pipeLex, pipeSyn, pipeExe].forEach(p => {
+                p.classList.remove('bg-primary/20', 'text-primary', 'border-primary/50', 'bg-green-500/20', 'text-green-400', 'border-green-500/50', 'bg-red-500/20', 'text-red-400', 'border-red-500/50');
+                p.classList.add('bg-surface-container', 'text-on-surface-variant', 'border-outline-variant/30');
+            });
+
+            // Highlight active pipeline phase (simulate artificial delay for effect)
+            pipeLex.classList.remove('bg-surface-container', 'text-on-surface-variant', 'border-outline-variant/30');
+            pipeLex.classList.add('bg-primary/20', 'text-primary', 'border-primary/50');
+
             try {
                 const res = await fetch('/execute', {
                     method: 'POST',
@@ -397,6 +430,12 @@
                 });
 
                 const data = await res.json();
+
+                pipeLex.classList.remove('bg-primary/20', 'text-primary', 'border-primary/50');
+                pipeLex.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
+
+                pipeSyn.classList.remove('bg-surface-container', 'text-on-surface-variant', 'border-outline-variant/30');
+                pipeSyn.classList.add('bg-primary/20', 'text-primary', 'border-primary/50');
 
                 // Render Tokens
                 const tokensArea = document.getElementById('tokensArea');
@@ -437,16 +476,35 @@
                 // Render AST
                 if (data.ast) {
                     document.getElementById('astArea').innerHTML = syntaxHighlight(data.ast);
+
+                    pipeSyn.classList.remove('bg-primary/20', 'text-primary', 'border-primary/50');
+                    pipeSyn.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
+
+                    pipeExe.classList.remove('bg-surface-container', 'text-on-surface-variant', 'border-outline-variant/30');
+                    pipeExe.classList.add('bg-primary/20', 'text-primary', 'border-primary/50');
                 }
 
                 // Render Results
                 const resultArea = document.getElementById('resultArea');
                 if (data.error) {
                     resultArea.innerHTML = `<div class="msg-error"><span class="font-bold">Error:</span> ${data.error}</div>`;
+
+                    // If error is related to syntax or AST is missing, mark Syntax Analysis as failed
+                    if (data.error.toLowerCase().includes('syntax') || !data.ast) {
+                        pipeSyn.classList.remove('bg-green-500/20', 'text-green-400', 'border-green-500/50', 'bg-primary/20', 'text-primary', 'border-primary/50');
+                        pipeSyn.classList.add('bg-red-500/20', 'text-red-400', 'border-red-500/50');
+                    }
+
+                    pipeExe.classList.remove('bg-green-500/20', 'text-green-400', 'border-green-500/50', 'bg-primary/20', 'text-primary', 'border-primary/50');
+                    pipeExe.classList.add('bg-red-500/20', 'text-red-400', 'border-red-500/50');
                 } else if (typeof data.result === 'string') {
                     resultArea.innerHTML = `<div class="msg-success"><span class="font-bold">Success:</span> ${data.result}</div>`;
+                    pipeExe.classList.remove('bg-primary/20', 'text-primary', 'border-primary/50');
+                    pipeExe.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
                 } else if (Array.isArray(data.result)) {
                     document.getElementById('rowCountFooter').innerText = `Row Count: ${data.result.length}`;
+                    pipeExe.classList.remove('bg-primary/20', 'text-primary', 'border-primary/50');
+                    pipeExe.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
 
                     if (data.result.length === 0) {
                         resultArea.innerHTML = `<div class="msg-success">0 rows returned.</div>`;
@@ -476,6 +534,9 @@
                 }
             } catch (e) {
                 document.getElementById('resultArea').innerHTML = `<div class="msg-error">Server Connection Failed. Is app.py running?</div>`;
+
+                pipeLex.classList.remove('bg-primary/20', 'text-primary', 'border-primary/50', 'bg-green-500/20', 'text-green-400', 'border-green-500/50');
+                pipeLex.classList.add('bg-red-500/20', 'text-red-400', 'border-red-500/50');
             }
         }
     </script>
